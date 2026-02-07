@@ -28,3 +28,18 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server started"));
+
+app.post("/order", async (req, res) => {
+  const { name, item, quantity } = req.body;
+
+  if (!name || !item || !quantity) {
+    return res.status(400).json({ error: "Missing order details" });
+  }
+
+  res.json({
+    success: true,
+    message: "Order received successfully"
+  });
+});
+
+
