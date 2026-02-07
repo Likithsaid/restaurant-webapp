@@ -1,0 +1,42 @@
+<h1>Contact</h1>
+
+<form id="contactForm">
+  <input name="name" placeholder="Name" required />
+  <br />
+  <input name="email" placeholder="Email" required />
+  <br />
+  <textarea name="message" placeholder="Message" required></textarea>
+  <br />
+  <button type="submit">Send</button>
+</form>
+
+<p id="status"></p>
+
+<script>
+document.getElementById("contactForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const data = {
+    name: e.target.name.value,
+    email: e.target.email.value,
+    message: e.target.message.value
+  };
+
+  try {
+    const res = await fetch(
+      "https://restaurant-webapp-4v00.onrender.com/contact",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      }
+    );
+
+    document.getElementById("status").innerText =
+      res.ok ? "Message sent successfully!" : "Failed to send message";
+  } catch (err) {
+    document.getElementById("status").innerText =
+      "Server error. Please try again later.";
+  }
+});
+</script>
