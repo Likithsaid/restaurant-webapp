@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Order - Szechuan Dragon</title>
+    <link rel="icon" href="logo.jpg" type="image/jpeg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <script src="temp-products.js"></script>
+    <script src="script.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="restaurant-brand">
+                <div class="logo-container">
+                    <img src="logo.jpg" alt="Schezwan Dragon Logo" class="logo-img">
+                    <div class="logo-text">
+                        <h1 class="restaurant-name">Szechuan Dragon</h1>
+                        <p class="restaurant-tagline">Fiery Flavors, Exotic Tastes</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="header-nav">
+                <a href="index.html">Home</a>
+                <a href="menu.html">Menu</a>
+                <a href="help.html">Help</a>
+                <a href="about.html">About Us</a>
+                <a href="cart.html" class="cart-icon">Your Cart <span class="cart-count">0</span></a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="bulk-order-container">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-5">
+                            <div class="text-center mb-4">
+                                <img src="/public/images/logo.jpg" alt="Szechuan Dragon Logo" class="logo rounded-circle mb-3" style="width: 100px; height: 100px; border: 3px solid #FF6B00;">
+                                <h2 class="card-title mb-3" style="color: #FF6B00;"> Bulk Order Request</h2>
+                                <p class="lead">You have <span id="itemCount" class="fw-bold" style="color: #FF6B00;">0</span> items in your cart.</p>
+                                <p class="text-muted">For bulk orders (more than 6 items or cart price greater than  800), please contact us directly via WhatsApp for order Acceptance.</p>
+                            </div>
+                            
+                            <div class="item-list card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0"> Your Order Summary</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul id="orderSummary" class="list-unstyled mb-0"></ul>
+                                </div>
+                            </div>
+                            
+                            <div class="charges-info card mb-4 border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0"> Bulk Order Charges & Terms</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <h6 class="text-danger"> Extra Charges</h6>
+                                                <ul class="list-unstyled">
+                                                    <li>• Bulk Order Charge: <strong class="text-danger">₹50</strong></li>
+                                                    <li class="mt-2"><em>(For special packaging & handling)</em></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <h6 class="text-primary"> Deposit Policy</h6>
+                                                <ul class="list-unstyled">
+                                                    <li>• Security Deposit: <strong class="text-primary">₹500</strong></li>
+                                                    <li>• Deducted from final bill</li>
+                                                    <li>• Non-refundable advance if order not accepted or cancelled at last movement by person</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="alert alert-info mt-3">
+                                        <strong> How It Works:</strong>
+                                        <ul class="mb-0 mt-2">
+                                            <li>₹50 is added as bulk order charge</li>
+                                            <li>₹500 deposit is deducted from your total payment</li>
+                                            <li>You pay only: <strong>(Total - ₹500) + ₹50</strong></li>
+                                            <li>Minimum order: 6 items or cart total greater than 800 for bulk order qualification</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="calculation-summary card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0"> Payment Calculation</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td>Items Total:</td>
+                                            <td class="text-end" id="itemsTotal">₹0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Bulk Order Charge:</td>
+                                            <td class="text-end text-danger">+ ₹50.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Deposit now to accept order :</td>
+                                            <td class="text-end text-primary">- ₹500.00</td>
+                                        </tr>
+                                        <tr class="table-active fw-bold">
+                                            <td>Amount to Pay at delivery:</td>
+                                            <td class="text-end text-success" id="totalPayable">₹0.00</td>
+                                        </tr>
+                                        <tr class="text-muted small">
+                                            <td colspan="2">
+                                                <em>* ₹500 deposit is deducted from your total payment</em>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mb-4">
+                                <a id="whatsappLink" href="#" class="whatsapp-btn btn btn-lg" style="background-color: #25D366; color: white; border: none; padding: 15px 30px; border-radius: 50px;">
+                                    <span class="whatsapp-icon"></span>
+                                    Contact via WhatsApp
+                                </a>
+                            </div>
+                            
+                            <div class="contact-info card border-warning">
+                                <div class="card-body">
+                                    <h5 class="card-title text-warning">📞 Contact Information</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>📞 Direct Contact:</strong><br>+91 9663567711</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong> Business Hours:</strong><br>10:00 AM - 11:00 PM (7 days a week)</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <p class="text-muted small"><em>For bulk orders, we recommend contacting us during business hours for immediate response.</em></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <a href="cart.html" class="btn btn-outline-secondary me-2">
+                                    ← Back to Cart
+                                </a>
+                                <a href="menu.html" class="btn btn-outline-primary">
+                                    Continue Shopping
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="copyright">
+                © 2026 Szechuan Dragon Restaurant. All rights reserved.
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+           
+            updateCartCount();
+            
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
+            
+            document.getElementById('itemCount').textContent = itemCount;
+            
+            const orderSummary = document.getElementById('orderSummary');
+            let itemsTotal = 0;
+            
+            if (cart.length > 0) {
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    itemsTotal += itemTotal;
+                    
+                    const li = document.createElement('li');
+                    li.className = 'd-flex justify-content-between align-items-center py-2 border-bottom';
+                    li.innerHTML = `
+                        <div>
+                            <strong>${item.name}</strong><br>
+                            <small class="text-muted">₹${item.price} × ${item.quantity}</small>
+                        </div>
+                        <span class="fw-bold">₹${itemTotal.toFixed(2)}</span>
+                    `;
+                    orderSummary.appendChild(li);
+                });
+                
+                const li = document.createElement('li');
+                li.className = 'd-flex justify-content-between align-items-center py-3 mt-2';
+                li.innerHTML = `
+                    <div>
+                        <strong class="text-success fs-5">Items Total</strong><br>
+                        <small class="text-muted">${itemCount} items</small>
+                    </div>
+                    <span class="text-success fw-bold fs-5">₹${itemsTotal.toFixed(2)}</span>
+                `;
+                li.style.borderTop = '2px solid #FF6B00';
+                orderSummary.appendChild(li);
+            } else {
+                orderSummary.innerHTML = `
+                    <li class="text-center py-4">
+                        <div class="text-muted mb-2">🛒</div>
+                        <p>No items in cart</p>
+                        <a href="menu.html" class="btn btn-sm btn-outline-primary">Browse Menu</a>
+                    </li>
+                `;
+            }
+            
+            const extraCharges = 50; 
+            const deposit = 500; 
+            const totalPayable = itemsTotal + extraCharges - deposit;
+            
+            const finalPayable = totalPayable < 0 ? 0 : totalPayable;
+            
+            document.getElementById('itemsTotal').textContent = `₹${itemsTotal.toFixed(2)}`;
+            document.getElementById('totalPayable').textContent = `₹${finalPayable.toFixed(2)}`;
+            
+            let message = `Hello Szechuan Dragon!%0A%0A`;
+            message += `I would like to place a bulk order:%0A%0A`;
+            
+            cart.forEach(item => {
+                message += `• ${item.name} × ${item.quantity} = ₹${(item.price * item.quantity).toFixed(2)}%0A`;
+            });
+            
+            message += `%0A--- PAYMENT CALCULATION ---%0A`;
+            message += `Items Total: ₹${itemsTotal.toFixed(2)}%0A`;
+            message += `Bulk Order Surcharge: +₹${extraCharges.toFixed(2)}%0A`;
+            message += `Deposit Deducted: -₹${deposit.toFixed(2)}%0A`;
+            message += `%0AAmount to Pay Now: ₹${finalPayable.toFixed(2)}%0A`;
+            message += `Total Items: ${itemCount}%0A%0A`;
+            message += `I understand that: %0A`;
+            message += `1. ₹50 is added as bulk order surcharge%0A`;
+            message += `2. ₹500 deposit is deducted from my total payment%0A`;
+            message += `3. Final payment: ₹${finalPayable.toFixed(2)}%0A%0A`;
+            message += `Please contact me to confirm this bulk order.`;
+            
+            const whatsappLink = document.getElementById('whatsappLink');
+            whatsappLink.href = `https://wa.me/919663567711?text=${message}`;
+        });
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            const cartCountElements = document.querySelectorAll('.cart-count');
+            cartCountElements.forEach(element => {
+                element.textContent = count;
+            });
+        }
+    </script>
+    
+    <style>
+        .bulk-order-container {
+            margin: 40px 0;
+        }
+        
+        .whatsapp-btn {
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .whatsapp-btn:hover {
+            background-color: #128c37 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
+            color: white !important;
+        }
+        
+        .item-list .card-header {
+            background-color: rgba(255, 107, 0, 0.1) !important;
+            border-bottom: 2px solid #FF6B00;
+        }
+        
+        .contact-info {
+            border-color: #FF6B00 !important;
+        }
+        
+        .contact-info .card-body {
+            background-color: rgba(255, 107, 0, 0.05);
+        }
+        
+        .charges-info .card-header {
+            background-color: #ffeaa7 !important;
+        }
+        
+        .calculation-summary .table {
+            margin-bottom: 0;
+        }
+        
+        .calculation-summary .table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #FF6B00;
+            box-shadow: 0 4px 8px rgba(255, 107, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .logo-img:hover {
+            transform: rotate(5deg) scale(1.05);
+            box-shadow: 0 6px 12px rgba(255, 107, 0, 0.4);
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .restaurant-name {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 0;
+            background: linear-gradient(45deg, #FF6B00, #FF8C00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .restaurant-tagline {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+            font-style: italic;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-bottom: 3px solid #FF6B00;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+        
+        .header-nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .header-nav a:hover {
+            background-color: rgba(255, 107, 0, 0.2);
+            color: #FF6B00;
+        }
+        
+        .header-nav a.active {
+            background-color: #FF6B00;
+            color: white;
+        }
+        
+        .cart-icon {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background-color: rgba(255, 107, 0, 0.1);
+            border: 1px solid #FF6B00;
+        }
+        
+        .cart-count {
+            background-color: #FF6B00;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        
+        .footer-content {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 30px 20px;
+            margin-top: 50px;
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .copyright {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+            
+            .logo-container {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .restaurant-name {
+                font-size: 1.8rem;
+            }
+            
+            .header-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .header-nav a {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+            }
+            
+            .card-body {
+                padding: 20px !important;
+            }
+        }
+    </style>
+</body>
+</html>

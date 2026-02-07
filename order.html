@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <link rel="icon" href="logo.jpg" type="image/jpeg">
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="restaurant-brand">
+                <div class="logo-container">
+                    <img src="logo.jpg" alt="Schezwan Dragon Logo" class="logo-img">
+                    <div class="logo-text">
+                        <h1 class="restaurant-name">Szechuan Dragon</h1>
+                        <p class="restaurant-tagline">Fiery Flavors, Exotic Tastes</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="header-nav">
+                <a href="index.html">Home</a>
+                <a href="menu.html">Menu</a>
+                <a href="help.html">Help</a>
+                <a href="about.html">About Us</a>
+                <a href="cart.html" class="cart-icon">Your Cart <span class="cart-count">0</span></a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div id="loadingStatus" class="text-center">
+                    <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading your order status...</p>
+                </div>
+
+                <div id="orderStatusCard" style="display: none;"></div>
+
+                <div id="orderDetailsSection" style="display: none;">
+                    <div class="card mb-4">
+                        <div class="card-header" style="background-color: #FF6B00; color: white;">
+                            <h4 class="mb-0">Order Information</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Order ID:</strong> <span id="displayOrderId"></span></p>
+                                    <p><strong>Customer:</strong> <span id="displayCustomerName"></span></p>
+                                    <p><strong>Order Date:</strong> <span id="displayOrderDate"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Status:</strong> <span id="displayStatus"></span></p>
+                                    <div id="deliveryTimeInfo"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header" style="background-color: #FF6B00; color: white;">
+                            <h4 class="mb-0">Your Items</h4>
+                        </div>
+                        <div class="card-body">
+                            <div id="orderItemsList"></div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-5">
+                        <a href="index.html" class="btn btn-primary me-2">Back to Home</a>
+                        <a href="help.html" class="btn btn-secondary me-2">Need Help?</a>
+                        <button id="refreshBtn" class="btn btn-secondary" onclick="location.reload()">Refresh Status</button>
+                    </div>
+                </div>
+
+                <div id="errorMessage" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="login.html">Admin Login</a>
+                <a href="help.html">Contact Us</a>
+            </div>
+        </div>
+        <div class="copyright">
+            © 2026 Szechuan Dragon Restaurant. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.header-nav a:not(.cart-icon)').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.href && !this.href.includes('#') && this.getAttribute('onclick') !== 'loginUser()') {
+                    e.preventDefault();
+                    
+                    document.body.style.opacity = '0.7';
+                    document.body.style.transition = 'opacity 0.3s ease';
+                    
+                    setTimeout(() => {
+                        window.location.href = this.href;
+                    }, 300);
+                }
+            });
+        });
+    });
+
+    let checkInterval;
+    let currentOrderId = null;
+    let orderData = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        currentOrderId = urlParams.get('orderId');
+
+        const savedOrderData = sessionStorage.getItem('lastOrderData');
+        if (savedOrderData) {
+            try {
+                orderData = JSON.parse(savedOrderData);
+                console.log('Loaded order data from sessionStorage:', orderData);
+            } catch (e) {
+                console.error('Error parsing order data:', e);
+            }
+        }
+
+        if (!currentOrderId) {
+            showError('No Order Found', 'Please place an order first to view its status.', true);
+            return;
+        }
+
+        loadOrderStatus();
+        checkInterval = setInterval(loadOrderStatus, 10000); 
+    });
+
+async function loadOrderStatus() {
+    try {
+        const response = await fetch(`/api/order-status?orderId=${currentOrderId}`);
+                
+        if (!response.ok) {
+            throw new Error('Failed to fetch order status');
+        }
+
+        const order = await response.json();
+        
+        if (order.error) {
+            throw new Error(order.error);
+        }
+
+        document.getElementById('loadingStatus').style.display = 'none';
+
+        displayOrderStatus(order);
+        displayOrderInfo(order);
+        displayOrderItems(order);
+
+        document.getElementById('orderDetailsSection').style.display = 'block';
+
+        if (order.status === 'delivered' || order.status === 'not_received' || order.status === 'rejected') {
+            clearInterval(checkInterval);
+        }
+
+    } catch (error) {
+        showError('Error Loading Order', error.message || 'Please try again later.');
+    }
+}
+
+    function displayOrderStatus(order) {
+        const statusCard = document.getElementById('orderStatusCard');
+        let statusHTML = '';
+
+
+        if (order.status === 'pending') {
+            statusHTML = `
+                <div class="alert alert-warning text-center" style="border:3px solid #ffc107;border-radius:15px;padding:30px;">
+                    <div style="font-size:60px;">⏳</div>
+                    <h2>ORDER SUBMITTED - AWAITING CONFIRMATION</h2>
+                    <p class="lead">Your order #${order.id} is waiting for confirmation.</p>
+                    <small>Thanks for choosing us ...</small>
+                </div>
+            `;
+        }
+        else if (order.status === 'confirmed') {
+            const deliveryTime = order.delivery_time || '30-45 minutes';
+            
+            statusHTML = `
+                <div class="alert alert-success text-center" style="border:3px solid #28a745;border-radius:15px;padding:30px;">
+                    <div style="font-size:60px;">✅</div>
+                    <h2>ORDER ACCEPTED!</h2>
+                    <p class="lead">Your order #${order.id} has been confirmed.</p>
+                    <div class="mt-4 p-3" style="background-color: #e8f5e8; border-radius: 10px; border: 2px dashed #28a745;">
+                        <h4 class="mb-2">⏰ Estimated Delivery Time</h4>
+                        <h3 class="text-primary mb-2">${deliveryTime}</h3>
+                        <p class="text-muted mb-0">Your order will be delivered within ${deliveryTime}</p>
+                    </div>
+                </div>
+            `;
+        }
+        else if (order.status === 'delivered') {
+            statusHTML = `
+                <div class="alert alert-success text-center" style="border:3px solid #28a745;border-radius:15px;padding:30px;">
+                    <div style="font-size:60px;">🎉</div>
+                    <h2>ORDER DELIVERED!</h2>
+                    <p class="lead">Your order #${order.id} has been successfully delivered.</p>
+                    <p>Thank you for choosing Szechuan Dragon! We hope you enjoy your meal!</p>
+                </div>
+            `;
+        }
+        else if (order.status === 'not_received') {
+            statusHTML = `
+                <div class="alert alert-secondary text-center" style="border:3px solid #6c757d;border-radius:15px;padding:30px;">
+                    <div style="font-size:60px;">📞</div>
+                    <h2>PHONE NOT ATTENDED</h2>
+                    <p class="lead">We tried to contact you for order #${order.id}, but couldn't reach you.</p>
+                    <p>Please contact us if you'd like to complete this order.</p>
+                    <a href="help.html" class="btn btn-primary mt-3">Contact Support</a>
+                </div>
+            `;
+        }
+        else if (order.status === 'rejected') {
+            statusHTML = `
+                <div class="alert alert-danger text-center" style="border:3px solid #dc3545;border-radius:15px;padding:30px;">
+                    <div style="font-size:60px;">❌</div>
+                    <h2>ORDER REJECTED</h2>
+                    <p class="lead">Unfortunately, your order #${order.id} was rejected.</p>
+                    <p>Please place a new order or contact support.</p>
+                </div>
+            `;
+        }
+        else {
+            statusHTML = `
+                <div class="alert alert-info text-center" style="border:3px solid #17a2b8;border-radius:15px;padding:30px;">
+                    <div style="font-size:60px;">❓</div>
+                    <h2>ORDER STATUS: ${order.status ? order.status.toUpperCase() : 'UNKNOWN'}</h2>
+                    <p class="lead">Status for order #${order.id}: ${order.status}</p>
+                    <p>If you have questions, please contact support.</p>
+                </div>
+            `;
+        }
+
+        statusCard.innerHTML = statusHTML;
+        statusCard.style.display = 'block';
+    }
+
+    function displayOrderInfo(order) {
+        document.getElementById('displayOrderId').textContent = `#${order.id}`;
+        document.getElementById('displayCustomerName').textContent =
+            `${order.first_name} ${order.last_name}`;
+        
+        const orderDate = order.created_at ? new Date(order.created_at) : new Date();
+        document.getElementById('displayOrderDate').textContent = orderDate.toLocaleString();
+
+        let badge = '';
+        if (order.status === 'confirmed') {
+            badge = '<span class="badge bg-success">CONFIRMED</span>';
+        } else if (order.status === 'rejected') {
+            badge = '<span class="badge bg-danger">REJECTED</span>';
+        } else if (order.status === 'delivered') {
+            badge = '<span class="badge bg-success">DELIVERED</span>';
+        } else if (order.status === 'not_received') {
+            badge = '<span class="badge bg-secondary">PHONE NOT ATTENDED</span>';
+        } else if (order.status === 'pending') {
+            badge = '<span class="badge bg-warning text-dark">PENDING</span>';
+        } else {
+            badge = `<span class="badge bg-info">${order.status ? order.status.toUpperCase() : 'UNKNOWN'}</span>`;
+        }
+
+        document.getElementById('displayStatus').innerHTML = badge;
+        
+        const deliveryTimeInfo = document.getElementById('deliveryTimeInfo');
+        deliveryTimeInfo.innerHTML = '';
+        
+        if (order.delivery_time && (order.status === 'confirmed' || order.status === 'delivered')) {
+            deliveryTimeInfo.innerHTML = `<p class="mt-2"><strong>Estimated Delivery Time:</strong> ${order.delivery_time}</p>`;
+        }
+    }
+
+function displayOrderItems(order) {
+    const itemsList = document.getElementById('orderItemsList');
+    
+    itemsList.innerHTML = '';
+    
+    let items = [];
+    let total = 0;
+    
+    if (order.items && order.items.length > 0) {
+        items = order.items;
+        console.log('Using items from API response:', items);
+    } 
+    else if (orderData && orderData.cartItems && orderData.cartItems.length > 0) {
+        items = orderData.cartItems;
+        console.log('Using items from sessionStorage:', items);
+    }
+    else if (order.cartItems && order.cartItems.length > 0) {
+        items = order.cartItems;
+        console.log('Using items from order.cartItems:', items);
+    }
+    
+    if (items.length > 0) {
+        let html = '';
+        
+        items.forEach(item => {
+            const itemName = item.product_name || item.name || 'Unknown Item';
+            const itemPrice = parseFloat(item.price) || 0;
+            const itemQuantity = parseInt(item.quantity) || 1;
+            const itemTotal = itemPrice * itemQuantity;
+            total += itemTotal;
+            
+            html += `
+                <div class="mb-3 d-flex justify-content-between align-items-center border-bottom pb-2">
+                    <div>
+                        <strong>${itemName}</strong><br>
+                        <small class="text-muted">Quantity: ${itemQuantity} × ₹${itemPrice.toFixed(2)}</small>
+                    </div>
+                    <div class="fw-bold">₹${itemTotal.toFixed(2)}</div>
+                </div>
+            `;
+        });
+        
+        html += `
+            <div class="mt-3 pt-2 border-top d-flex justify-content-between">
+                <strong>Total:</strong>
+                <strong class="text-success">₹${total.toFixed(2)}</strong>
+            </div>
+        `;
+        
+        itemsList.innerHTML = html;
+    } else {
+        console.warn('No order items found in any source');
+        itemsList.innerHTML = '<p class="text-muted">No items available in this order.</p>';
+    }
+}
+
+    function showError(title, message, showHomeButton = false) {
+        document.getElementById('loadingStatus').style.display = 'none';
+
+        let html = `
+            <div class="alert alert-danger text-center">
+                <h3>❌ ${title}</h3>
+                <p>${message}</p>
+        `;
+
+        if (showHomeButton) {
+            html += `<a href="index.html" class="btn btn-primary mt-3">Browse Menu</a>`;
+        }
+
+        html += `</div>`;
+
+        document.getElementById('errorMessage').innerHTML = html;
+        document.getElementById('errorMessage').style.display = 'block';
+
+        if (checkInterval) clearInterval(checkInterval);
+    }
+
+    window.addEventListener('beforeunload', () => {
+        if (checkInterval) clearInterval(checkInterval);
+    });
+    </script>
+
+    <style>
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #FF6B00;
+            box-shadow: 0 4px 8px rgba(255, 107, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .logo-img:hover {
+            transform: rotate(5deg) scale(1.05);
+            box-shadow: 0 6px 12px rgba(255, 107, 0, 0.4);
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .restaurant-brand {
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .restaurant-name {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 0;
+            background: linear-gradient(45deg, #FF6B00, #FF8C00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .restaurant-tagline {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+            font-style: italic;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-bottom: 3px solid #FF6B00;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+        
+        .header-nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .header-nav a:hover {
+            background-color: rgba(255, 107, 0, 0.2);
+            color: #FF6B00;
+        }
+        
+        .header-nav a.active {
+            background-color: #FF6B00;
+            color: white;
+        }
+        
+        .cart-icon {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background-color: rgba(255, 107, 0, 0.1);
+            border: 1px solid #FF6B00;
+        }
+        
+        .cart-count {
+            background-color: #FF6B00;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        
+        .btn-primary {
+            background-color: #FF6B00;
+            border-color: #FF6B00;
+        }
+        
+        .btn-primary:hover {
+            background-color: #e55a00;
+            border-color: #e55a00;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-secondary {
+            background-color: #e2e3e5;
+            border-color: #d6d8db;
+            color: #383d41;
+        }
+        
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+            
+            .logo-container {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .restaurant-name {
+                font-size: 1.8rem;
+            }
+            
+            .header-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .header-nav a {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</body>
+</html>
